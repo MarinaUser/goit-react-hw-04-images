@@ -27,6 +27,7 @@ const Modal = ({ url, alt, onClose }) => {
     }
   };
 
+  
   return createPortal(
     <Overlay onClick={handleOverlayClick}>
       <ModalWindow>

@@ -20,7 +20,7 @@ const Modal = ({ url, alt, onClose }) => {
       window.removeEventListener('keydown', handleKeyEsc);
     };
   }, [onClose]);
-
+  
   const handleOverlayClick = e => {
     if (e.currentTarget === e.target) {
       onClose();

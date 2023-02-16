@@ -1,4 +1,4 @@
-import { createPortal, render } from 'react-dom';
+import { createPortal} from 'react-dom';
 import { useEffect } from 'react';
 import PropTypes from 'prop-types';
 
@@ -27,6 +27,7 @@ const Modal = ({ url, alt, onClose }) => {
     }
   };
 
+  
   return createPortal(
     <Overlay onClick={handleOverlayClick}>
       <ModalWindow>

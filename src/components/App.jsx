@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import  { useState, useEffect } from 'react';
 import * as API from './services/api';
 import { ToastContainer, toast } from 'react-toastify';
 import { Container } from './App.styled';
@@ -12,40 +12,45 @@ import Button from './Button';
 import Modal from './Modal';
 
 
-export class App extends Component {
-  state = {
-    page: 1,
-    query: '',
-    items: [],
-    isLoading: false,
-    error: null,
-    showModal: false,
-    largeImageURL: null,
-    tags: null,
-    showBtn: false,
-    
-  };
-
-
-  componentDidUpdate(_, prevState) {
-    const { query, page } = this.state;
-
-    if (prevState.query !== query || prevState.page !== page) {
-      this.fetchImages(query, page);
+export const App = () => {
+  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState('');
+  const [items, setItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [largeImageURL, setLargeImageURL] = useState(null);
+  const [tags, setTags] = useState(null);
+  const [showBtn, setShowBtn] = useState(false);
+  
+  useEffect(() => {
+    if (query === '') {
+      return;
     }
-  }
+    fetchImages(query, page);
+  }, [query, page]);
+ 
 
-  fetchImages = async (query, page) => {
+  const fetchImages = async (query, page) => {
     try {
-      this.setState({ isLoading: true });
-      const response = await API.fetchImages(query.toLowerCase(), page);
+      setIsLoading(true);
 
-    
-        this.setState(prevState => ({
-          items: [...prevState.items, ...response.hits],
-          showBtn: this.state.page < Math.ceil(response.totalHits / 12),
-        }));
-      
+      const response = await API.fetchImages(query.toLowerCase(), page);
+  
+
+      if (page === 1) {
+        setItems(prev => [...response.hits]);
+        setShowBtn(false)
+        window.scroll(0, 0);
+      } else {
+        setItems(prev => [...prev, ...response.hits]);
+        setShowBtn(true)
+        }
+        
+
+     if (page < Math.ceil(response.totalHits / 12)) {
+         setShowBtn(true)
+      }
       
 
       if (response.length === 0) {
@@ -55,51 +60,42 @@ export class App extends Component {
       }
     } catch {
       const message = 'Oops, something went wrong ...';
-      this.setState({ error: message });
+      setError({ error: message });
     } finally {
-      this.setState({ isLoading: false });
+      setIsLoading(false);
     }
   };
 
  
-  handleSearchbarSubmit = query => {
-    // console.log(query);
-    // console.log(this.state);
-    if (this.state.query.toLowerCase() !== query.toLowerCase()) {
-      this.setState({ query, page: 1, items: [] });
+  const handleSearchbarSubmit = newQuery => {
+   
+    if (query.toLowerCase() !== newQuery.toLowerCase()) {
+      setQuery(newQuery);
+      setPage(1);
+      setItems([]);
     } else {
-      this.setState({ page: 1 });
+      setPage(1);
     }
   };
 
-  loadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
+  const loadMore = () => {
+    setPage(prev => prev + 1);
   };
 
 
-  toggleModal = (tags, largeImageURL) => {
-    const { showModal } = this.state;
+  const toggleModal = (tags, largeImageURL) => {
 
-    showModal
-      ? this.setState(({ showModal }) => ({
-          showModal: !showModal,
-          tags: null,
-          largeImageURL: null,
-        }))
-      : this.setState(({ showModal }) => ({
-          showModal: !showModal,
-          tags,
-          largeImageURL,
-        }));
+    if (showModal) {
+      setShowModal(!showModal);
+      setTags(null);
+      setLargeImageURL(null);
+    } else {
+      setShowModal(!showModal);
+      setTags(tags);
+      setLargeImageURL(largeImageURL);
+    }
   };
 
-  
-
-  render() {
-    const { items, error, isLoading, showModal, largeImageURL, tags, showBtn } = this.state;
-    const { handleSearchbarSubmit, loadMore, toggleModal } = this;
 
     return (
      <Container>
@@ -109,7 +105,7 @@ export class App extends Component {
           <Notification message={error} />) : (
           <>
             {isLoading && <Loader />}
-            {items.length > 0 && !isLoading && (
+            {items.length > 0 && (
               <>
                 <ImageGallery images={items} toggleModal={toggleModal} />
               </>
@@ -130,4 +126,4 @@ export class App extends Component {
       </Container>
     );
   }
-}
+

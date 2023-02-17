@@ -26,37 +26,24 @@ export const App = () => {
     if (query === '') {
       return;
     }
-    fetchImages(query, page);
-  }, [query, page]);
- 
+    
+    setIsLoading(true);
 
-  const fetchImages = async (query, page) => {
+    const fetchImages = async (query, page) => {
     try {
-      setIsLoading(true);
 
       const response = await API.fetchImages(query.toLowerCase(), page);
-  
 
-      if (page === 1) {
-        setItems(prev => [...response.hits]);
-        setShowBtn(false)
-        window.scroll(0, 0);
-      } else {
-        setItems(prev => [...prev, ...response.hits]);
-        setShowBtn(true)
-        }
-        
-
-     if (page < Math.ceil(response.totalHits / 12)) {
-         setShowBtn(true)
-      }
-      
-
-      if (response.length === 0) {
+       if (response.length === 0) {
         return toast.warn(
           'Search Failure. There is no images for your query. Please enter other query.'
         );
       }
+  
+      setItems(prev => [...prev, ...response.hits]);
+      
+      setShowBtn(page < Math.ceil(response.totalHits / 12));
+       
     } catch {
       const message = 'Oops, something went wrong ...';
       setError({ error: message });
@@ -64,17 +51,22 @@ export const App = () => {
       setIsLoading(false);
     }
   };
-
+    fetchImages(query, page);
+  }, [query, page]);
+ 
  
   const handleSearchbarSubmit = newQuery => {
    
-    if (query.toLowerCase() !== newQuery.toLowerCase()) {
+     if (query.toLowerCase() !== newQuery.toLowerCase()) 
       setQuery(newQuery);
       setPage(1);
       setItems([]);
-    } else {
-      setPage(1);
-    }
+      setShowBtn(false);
+      setShowModal(false);
+      setIsLoading(false);
+      setError(null);
+      setLargeImageURL(null);
+      setTags(null);
   };
 
   const loadMore = () => {
@@ -125,4 +117,4 @@ export const App = () => {
       </Container>
     );
   }
-
+ 
